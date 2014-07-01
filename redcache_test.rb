@@ -18,4 +18,7 @@ keys.each do |k|
   rc.set_path(k, "1234")
 end
 
-run "get_nodes_below", rc.get_nodes_at("foo/x/").sort == keys.sort
+run "get_nodes_at", rc.get_nodes_at("foo/x/").sort == keys.sort
+
+rc.purge_nodes_at("foo/x/")
+run "purge_nodes_at", rc.get_nodes_at("foo/x/").empty?

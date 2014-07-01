@@ -3,6 +3,7 @@ require 'redis'
 REDCACHE_INTERNAL_DELIM = "!DELIM-REDCACHE!"
 
 class RedCache
+  attr_reader :redis
 
   def cache_path(path)
     paths = path[0].to_s == @delim ?
@@ -11,18 +12,18 @@ class RedCache
       return paths[0].empty? ? paths[1..-1] : paths
   end
 
+  def initialize(delim="/")
+    @redis = Redis.new(:host => "127.0.0.1")
+    @curpath = delim
+    @delim = delim
+  end
+
   def cache_path_serialized(path)
     cache_path(path).join(REDCACHE_INTERNAL_DELIM)
   end
 
   def unserialize_paths(paths)
     @curpath + paths.split(REDCACHE_INTERNAL_DELIM).join(@delim)
-  end
-
-  def initialize(delim="/")
-    @redis = Redis.new(:host => "127.0.0.1")
-    @curpath = delim
-    @delim = delim
   end
 
   def set_path(path, file)
@@ -46,5 +47,9 @@ class RedCache
     end
     curold = @curpath
     matches.map {|k| unserialize_paths(k)}
+  end
+
+  def purge_nodes_at(path)
+    @redis.del get_nodes_at(path).map {|k| cache_path_serialized(k)}
   end
 end
