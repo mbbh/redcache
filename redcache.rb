@@ -5,6 +5,10 @@ REDCACHE_INTERNAL_DELIM = "!DELIM-REDCACHE!"
 class RedCache
   attr_reader :redis
 
+  def internal_delim
+    @delim + REDCACHE_INTERNAL_DELIM + @delim
+  end
+
   def cache_path(path)
     paths = path[0].to_s == @delim ?
       path.split(@delim) :
@@ -19,11 +23,11 @@ class RedCache
   end
 
   def cache_path_serialized(path)
-    cache_path(path).join(REDCACHE_INTERNAL_DELIM)
+    cache_path(path).join(internal_delim)
   end
 
   def unserialize_paths(paths)
-    @curpath + paths.split(REDCACHE_INTERNAL_DELIM).join(@delim)
+    @curpath + paths.split(internal_delim).join(@delim)
   end
 
   def set_path(path, file)
@@ -42,7 +46,7 @@ class RedCache
     matches = []
     while(cursor.to_i != 0)
       cursor, m = @redis.scan((cursor == -1 ? 0 : cursor),
-        :match => paths.join(REDCACHE_INTERNAL_DELIM))
+        :match => paths.join(internal_delim))
       matches += m
     end
     curold = @curpath
