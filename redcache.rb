@@ -40,17 +40,13 @@ class RedCache
   end
 
   def get_nodes_at(path)
-    paths = cache_path(path)
-    paths << "*"
-    cursor = -1
-    matches = []
+    paths = (cache_path(path) << "*").join(internal_delim)
+    cursor, matches = @redis.scan(cursor, :match => paths)
     while(cursor.to_i != 0)
-      cursor, m = @redis.scan((cursor == -1 ? 0 : cursor),
-        :match => paths.join(internal_delim))
+      cursor, m = @redis.scan(cursor, :match => paths)
       matches += m
     end
-    curold = @curpath
-    matches.map {|k| unserialize_paths(k)}
+    return matches.map {|k| unserialize_paths(k)}
   end
 
   def purge_nodes_at(path)
