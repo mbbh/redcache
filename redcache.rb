@@ -52,4 +52,11 @@ class RedCache
   def purge_nodes_at(path)
     @redis.del get_nodes_at(path).map {|k| cache_path_serialized(k)}
   end
+
+  def namespace(name)
+    oldcur = @curpath
+    @curpath += (@curpath == @delim ? name : @delim + name)
+    yield
+    @curpath = oldcur
+  end
 end

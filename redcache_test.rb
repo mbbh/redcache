@@ -22,3 +22,13 @@ run "get_nodes_at", rc.get_nodes_at("foo/x/").sort == keys.sort
 
 rc.purge_nodes_at("foo/x/")
 run "purge_nodes_at", rc.get_nodes_at("foo/x/").empty?
+
+
+rc.namespace "LALELU" do
+  rc.set_path("foo", "abc")
+end
+rc.set_path("foo", 1234)
+
+run "namespace get/set", rc.get_path("/LALELU/foo") == "abc"
+
+rc.redis.flushdb
