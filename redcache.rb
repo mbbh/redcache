@@ -13,6 +13,7 @@ class RedCache
     paths = path[0].to_s == @delim ?
       path.split(@delim) :
       @curpath.split(@delim) + path.split(@delim)
+      return [@curpath] if paths.empty?
       return paths[0].empty? ? paths[1..-1] : paths
   end
 
@@ -39,8 +40,13 @@ class RedCache
     return data ? Marshal.load(data) : default
   end
 
+  def build_node_search_list(path)
+    return ["*"] if path.nil? || path == @curpath || path.empty?
+    return cache_path(path) << "*"
+  end
+
   def get_nodes_at(path)
-    paths = (cache_path(path) << "*").join(internal_delim)
+    paths = (build_node_search_list(path)).join(internal_delim)
     cursor, matches = @redis.scan(cursor, :match => paths)
     while(cursor.to_i != 0)
       cursor, m = @redis.scan(cursor, :match => paths)
