@@ -42,6 +42,7 @@ class RedCache
 
   def build_node_search_list(path)
     return ["*"] if path.nil? || path == @curpath || path.empty?
+    return ["#{path}/*"] unless path =~ %r{/?[^/]+/}
     return cache_path(path) << "*"
   end
 
@@ -56,7 +57,9 @@ class RedCache
   end
 
   def purge_nodes_at(path)
-    @redis.del get_nodes_at(path).map {|k| cache_path_serialized(k)}
+    return @redis.del path if @redis.exists path
+    nodes = get_nodes_at(path).map {|k| cache_path_serialized(k)}
+    @redis.del nodes unless nodes.empty?
   end
 
   def namespace(name)

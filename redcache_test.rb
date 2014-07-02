@@ -48,7 +48,10 @@ run "convinence operator should delete", rc.get_path("/abc").nil?
 
 run "empty path should lead to /*", rc.build_node_search_list("/") == ["*"]
 run "search path for foo should lead to /foo/*",
-  rc.build_node_search_list("/foo") == ["foo", "*"]
+  rc.build_node_search_list("/foo") == ["/foo/*"]
+
+run "deeper namespace search for foo/bar should lead to /foo/!DELIM!/bar/*",
+  rc.build_node_search_list("/foo/bar") == ["foo","bar","*"]
 
 rc.set_path("abc/def/ghi", "hullo")
 rc.set_namespace("abc/def")
@@ -59,6 +62,8 @@ rc.set_namespace("/")
 run "namespace removing should scale correctly",
   rc.get_path("abc/def/xxx") == "abc"
 
-
+rc["abc"] = true
+rc.purge_nodes_at("abc")
+run "removing of explicit toplevel existing nodes should work", rc["abc"].nil?
 
 rc.redis.flushdb

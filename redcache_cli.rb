@@ -22,6 +22,12 @@ def do_read(rc, file)
   puts result
 end
 
+def do_remove(rc, files)
+  files.split(" ").each do |f|
+    rc.purge_nodes_at(f)
+  end
+end
+
 def display_nodes(rc, buf)
   match = buf.sub(/^ls\s*/, '')
   nodes = []
@@ -35,21 +41,18 @@ def display_nodes(rc, buf)
       nodes << blue(node) unless nodes.include?(blue(node))
     end
   end
-  nodes.map {|n| puts n}
+  puts nodes.join("\n")
 end
 
 rc = RedCache.new
 
 while buf = Readline.readline("% ", true)
   exit 0 if buf == "exit"
-  if buf =~ /^ls/
-    display_nodes(rc, buf)
-  end
-  if buf =~ /^echo.*>/
-    do_write(rc, *buf.sub(/^echo\s+/, '').split(/\s*>\s*/))
-  end
-  if buf =~ /^cat /
-    do_read(rc, buf.sub(/^cat\s+/, ''))
+  case buf
+  when /^ls/ then display_nodes(rc, buf)
+  when /^echo.*>/ then do_write(rc, *buf.sub(/^echo\s+/, '').split(/\s*>\s*/))
+  when /^cat / then do_read(rc, buf.sub(/^cat\s+/, ''))
+  when /^rm .*/ then do_remove(rc, buf.sub(/^rm /, ''))
   end
 end
 
