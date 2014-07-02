@@ -3,7 +3,7 @@ load 'redcache_color.rb'
 load 'redcache_test_helper.rb'
 
 begin_test do
-  @rc = RedCache.new
+  @rc = RedCache::Connector.new
 
   run "simple get/set tests" do
     assert @rc.set_path("/foo/bar", "1234")

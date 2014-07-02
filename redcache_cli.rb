@@ -54,7 +54,7 @@ def display_nodes(rc, buf)
   puts nodes.map {|n| green(n)}.join("\n") unless nodes.empty?
 end
 
-rc = RedCache.new
+rc = RedCache::Connector.new
 
 while buf = Readline.readline("% ", true)
   exit 0 if buf == "exit"

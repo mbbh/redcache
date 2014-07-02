@@ -1,6 +1,6 @@
 test:
 	@echo Running RedCache test suite
-	@ruby redcache_test.rb
+	@for i in $$(ls -1 tests); do ruby tests/$$i;done
 
 cli:
 	@ruby redcache_cli.rb
