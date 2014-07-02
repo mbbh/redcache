@@ -1,13 +1,6 @@
 load 'redcache.rb'
+load 'redcache_color.rb'
 require 'readline'
-
-def colorize(text, color_code)
-  "#{color_code}#{text}\e[0m"
-end
-
-def red(text); colorize(text, "\e[31m"); end
-def green(text); colorize(text, "\e[32m"); end
-def blue(text); colorize(text, "\e[34m"); end
 
 def do_write(rc, val, key)
   rc.set_path(key, val)
@@ -15,17 +8,12 @@ end
 
 def do_read(rc, file)
   result = rc.get_path(file)
-  if result.nil?
-    puts "#{file}: No Such File."
-    return
-  end
+  return puts "#{file}: No Such File." if result.nil?
   puts result
 end
 
 def do_remove(rc, files)
-  files.split(" ").each do |f|
-    rc.purge_nodes_at(f)
-  end
+  files.split(" ").each {|f| rc.purge_nodes_at(f)}
 end
 
 def display_nodes(rc, buf)

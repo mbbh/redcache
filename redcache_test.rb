@@ -1,69 +1,64 @@
 load 'redcache.rb'
+load 'redcache_color.rb'
+load 'redcache_test_helper.rb'
 
-def colorize(text, color_code)
-  "#{color_code}#{text}\e[0m"
-end
+begin_test do
+  @rc = RedCache.new
 
-def red(text); colorize(text, "\e[31m"); end
-def green(text); colorize(text, "\e[32m"); end
-def blue(text); colorize(text, "\e[34m"); end
-
-
-def run(name, bool)
-  if bool
-    puts (("- %-70s [     "+green("OK")+" ]") % name)
-  else
-    puts (("- %-70s [ "+ red("FAILED")+" ]") % name)
+  run "simple get/set tests" do
+    assert @rc.set_path("/foo/bar", "1234")
+    assert @rc.set_path("foo/bar", "5555")
+    assert_equal @rc.get_path("foo/bar"), "5555"
   end
+
+  run "get_nodes_at should handle 'directories'" do
+    keys = (1..55).to_a.map {|i| "/foo/x/baz#{i}"}
+    keys.each do |k|
+      assert @rc.set_path(k, "1234")
+    end
+
+    assert_equal_array @rc.get_nodes_at("foo/x/"), keys.sort
+  end
+
+  run "running node purges" do
+    assert @rc.purge_nodes_at("foo/x/")
+    assert @rc.get_nodes_at("foo/x/").empty?
+
+    @rc["abc"] = true
+    assert @rc.purge_nodes_at("abc")
+    assert @rc["abc"].nil?
+  end
+
+  run "namespace handling" do
+    assert (@rc.namespace "LALELU" do
+      assert @rc.set_path("foo", "abc")
+    end)
+
+    assert @rc.set_path("foo", 1234)
+    assert_equal @rc.get_path("/LALELU/foo"), "abc"
+
+    assert @rc.set_path("abc/def/ghi", "hullo")
+    assert @rc.set_namespace("abc/def")
+    assert_equal @rc["ghi"], "hullo"
+
+    assert @rc.set_path("xxx", "abc")
+    assert @rc.set_namespace("/")
+    assert_equal @rc.get_path("abc/def/xxx"), "abc"
+  end
+
+  run "convinience operator [] and []=" do
+    assert @rc["abc"] = "abc"
+    assert_equal @rc["abc"], "cabc"
+
+    @rc["abc"] = nil
+    assert @rc.get_path("/abc").nil?
+  end
+
+  run "path wildcard buliding" do
+    assert_equal @rc.build_node_search_list("/"), ["*"]
+    assert_equal @rc.build_node_search_list("/foo"), ["/foo/*"]
+    assert_equal @rc.build_node_search_list("/foo/bar"), ["foo","bar","*"]
+  end
+
+  @rc.redis.flushdb
 end
-
-rc = RedCache.new
-rc.set_path("/foo/bar", "1234")
-rc.set_path("foo/bar", "5555")
-run "simple get/set", rc.get_path("foo/bar") == "5555"
-
-keys = (1..55).to_a.map {|i| "/foo/x/baz#{i}"}
-keys.each do |k|
-  rc.set_path(k, "1234")
-end
-
-run "get_nodes_at", rc.get_nodes_at("foo/x/").sort == keys.sort
-
-rc.purge_nodes_at("foo/x/")
-run "purge_nodes_at", rc.get_nodes_at("foo/x/").empty?
-
-
-rc.namespace "LALELU" do
-  rc.set_path("foo", "abc")
-end
-rc.set_path("foo", 1234)
-
-run "namespace get/set", rc.get_path("/LALELU/foo") == "abc"
-
-rc["abc"] = "abc"
-run "convinience operator test", rc["abc"] == "abc"
-
-rc["abc"] = nil
-run "convinence operator should delete", rc.get_path("/abc").nil?
-
-run "empty path should lead to /*", rc.build_node_search_list("/") == ["*"]
-run "search path for foo should lead to /foo/*",
-  rc.build_node_search_list("/foo") == ["/foo/*"]
-
-run "deeper namespace search for foo/bar should lead to /foo/!DELIM!/bar/*",
-  rc.build_node_search_list("/foo/bar") == ["foo","bar","*"]
-
-rc.set_path("abc/def/ghi", "hullo")
-rc.set_namespace("abc/def")
-run "namespace setting should function correctly", rc["ghi"] == "hullo"
-
-rc.set_path("xxx", "abc")
-rc.set_namespace("/")
-run "namespace removing should scale correctly",
-  rc.get_path("abc/def/xxx") == "abc"
-
-rc["abc"] = true
-rc.purge_nodes_at("abc")
-run "removing of explicit toplevel existing nodes should work", rc["abc"].nil?
-
-rc.redis.flushdb
