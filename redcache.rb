@@ -59,4 +59,15 @@ class RedCache
     yield
     @curpath = oldcur
   end
+
+  def [](arg)
+    return nil if arg.include?(@delim)
+    get_path(arg)
+  end
+
+  def []=(arg, val)
+    return nil if arg.include?(@delim)
+    @redis.del arg if val.nil?
+    set_path(arg, val)
+  end
 end

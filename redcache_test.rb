@@ -2,9 +2,9 @@ load 'redcache.rb'
 
 def run(name, bool)
   if bool
-    puts ("- %-25s [     OK ]" % name)
+    puts ("- %-70s [     OK ]" % name)
   else
-    puts ("- %-25s [ FAILED ]" % name)
+    puts ("- %-70s [ FAILED ]" % name)
   end
 end
 
@@ -30,5 +30,11 @@ end
 rc.set_path("foo", 1234)
 
 run "namespace get/set", rc.get_path("/LALELU/foo") == "abc"
+
+rc["abc"] = "abc"
+run "convinience operator test", rc["abc"] == "abc"
+
+rc["abc"] = nil
+run "convinence operator should delete", rc.get_path("/abc").nil?
 
 rc.redis.flushdb
