@@ -66,6 +66,10 @@ class RedCache
     @curpath = oldcur
   end
 
+  def set_namespace(name)
+    @curpath = name[0] == @delim ? name : @delim + name
+  end
+
   def [](arg)
     return nil if arg.include?(@delim)
     get_path(arg)
