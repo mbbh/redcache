@@ -3,4 +3,4 @@ test:
 	@ruby redcache_test.rb
 
 cli:
-	ruby redcache_cli.rb
+	@ruby redcache_cli.rb

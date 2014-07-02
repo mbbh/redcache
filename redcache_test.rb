@@ -44,11 +44,16 @@ begin_test do
     assert @rc.set_path("xxx", "abc")
     assert @rc.set_namespace("/")
     assert_equal @rc.get_path("abc/def/xxx"), "abc"
+
+    assert @rc.add_namespace("dir_a")
+    assert @rc.add_namespace("dir_b")
+    assert_equal @rc.get_namespace, "/dir_a/dir_b"
+    @rc.set_namespace("/")
   end
 
   run "convinience operator [] and []=" do
     assert @rc["abc"] = "abc"
-    assert_equal @rc["abc"], "cabc"
+    assert_equal @rc["abc"], "abc"
 
     @rc["abc"] = nil
     assert @rc.get_path("/abc").nil?
@@ -56,8 +61,13 @@ begin_test do
 
   run "path wildcard buliding" do
     assert_equal @rc.build_node_search_list("/"), ["*"]
-    assert_equal @rc.build_node_search_list("/foo"), ["/foo/*"]
     assert_equal @rc.build_node_search_list("/foo/bar"), ["foo","bar","*"]
+  end
+
+  run "path unserialisation" do
+    assert @rc.add_namespace("abc")
+    assert_equal "/abc/xyz",
+      @rc.unserialize_paths(@rc.cache_path_serialized("xyz"))
   end
 
   @rc.redis.flushdb

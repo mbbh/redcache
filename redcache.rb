@@ -3,7 +3,7 @@ require 'redis'
 REDCACHE_INTERNAL_DELIM = "!DELIM-REDCACHE!"
 
 class RedCache
-  attr_reader :redis
+  attr_reader :redis, :delim
 
   def internal_delim
     @delim + REDCACHE_INTERNAL_DELIM + @delim
@@ -28,7 +28,7 @@ class RedCache
   end
 
   def unserialize_paths(paths)
-    @curpath + paths.split(internal_delim).join(@delim)
+    @delim + paths.split(internal_delim).join(@delim)
   end
 
   def set_path(path, file)
@@ -41,8 +41,7 @@ class RedCache
   end
 
   def build_node_search_list(path)
-    return ["*"] if path.nil? || path == @curpath || path.empty?
-    return ["#{path}/*"] unless path =~ %r{/?[^/]+/}
+    return ["*"] if path.nil? || path == @delim || path.empty?
     return cache_path(path) << "*"
   end
 
@@ -71,6 +70,14 @@ class RedCache
 
   def set_namespace(name)
     @curpath = name[0] == @delim ? name : @delim + name
+  end
+
+  def get_namespace
+    @curpath.dup
+  end
+
+  def add_namespace(name)
+    @curpath += @curpath[-1] == @delim ? name : @delim + name
   end
 
   def [](arg)
