@@ -85,5 +85,12 @@ begin_test do
     assert_not @rc.ll_delete("test/delete/me")
   end
 
+  run "expire_path support" do
+    assert @rc.set_path("test/expire", "5")
+    assert @rc.expire_path("test/expire",1)
+    sleep 2
+    assert_nil @rc.get_path("test/expire")
+  end
+
   purge_test_data(@rc.redis)
 end

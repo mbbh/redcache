@@ -26,5 +26,14 @@ begin_test do
     assert @rcl.set("test/dce", "1")
     assert_equal @rcl.get("test/dce"), "1"
   end
+
+  run "timeoutable automatical recalc" do
+    @rcl.set("test/cached_entry", 5)
+    assert @rcl.register("test/cached_entry", ->(ts) { true }, -> { 2 })
+    @rcl.temporary("test/cached_entry", 1)
+    assert_equal 5, @rcl.get("test/cached_entry")
+    sleep 2
+    assert_equal 2, @rcl.get("test/cached_entry")
+  end
   purge_test_data(@rc.redis)
 end

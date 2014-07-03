@@ -68,6 +68,10 @@ module RedCache
       return nodes.all? {|n| ll_delete n }
     end
 
+    def expire_path(path, time)
+      @redis.expire(cache_path_serialized(path), time)
+    end
+
     def namespace(name)
       oldcur = @curpath
       @curpath += (@curpath == @delim ? name : @delim + name)
