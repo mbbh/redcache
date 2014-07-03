@@ -61,3 +61,9 @@ end
 def assert_not(a)
   assert !a
 end
+
+def purge_test_data(redis)
+  redis.keys("test*").each do |k|
+    redis.del k
+  end
+end

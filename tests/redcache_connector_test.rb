@@ -6,23 +6,24 @@ begin_test do
   @rc = RedCache::Connector.new
 
   run "simple get/set tests" do
-    assert @rc.set_path("/foo/bar", "1234")
-    assert @rc.set_path("foo/bar", "5555")
-    assert_equal @rc.get_path("foo/bar"), "5555"
+    assert @rc.set_path("/test/getset/a", "1234")
+    assert @rc.set_path("/test/getset/a", "5555")
+    assert_equal @rc.get_path("/test/getset/a"), "5555"
   end
 
   run "get_nodes_at should handle 'directories'" do
-    keys = (1..55).to_a.map {|i| "/foo/x/baz#{i}"}
+    keys = (1..55).to_a.map {|i| "/test/getnodes/#{i}"}
     keys.each do |k|
       assert @rc.set_path(k, "1234")
     end
 
-    assert_equal_array @rc.get_nodes_at("foo/x/"), keys.sort
+    assert_equal_array @rc.get_nodes_at("test/getnodes/"), keys.sort
   end
 
   run "running node purges" do
-    assert @rc.purge_nodes_at("foo/x/")
-    assert @rc.get_nodes_at("foo/x/").empty?
+    assert @rc.set_path("test/purge", 1234)
+    assert @rc.purge_nodes_at("test/purge")
+    assert @rc.get_nodes_at("test/purge").empty?
 
     @rc["abc"] = true
     assert @rc.purge_nodes_at("abc")
@@ -36,52 +37,53 @@ begin_test do
   end
 
   run "namespace handling" do
-    assert (@rc.namespace "LALELU" do
-      assert @rc.set_path("foo", "abc")
+    assert (@rc.namespace "test" do
+      assert @rc.set_path("ns_handling", "abc")
     end)
 
-    assert @rc.set_path("foo", 1234)
-    assert_equal @rc.get_path("/LALELU/foo"), "abc"
+    assert @rc.set_path("ns_handling", 1234)
+    assert_equal @rc.get_path("/test/ns_handling"), "abc"
+    @rc.ll_delete("ns_handling")
 
-    assert @rc.set_path("abc/def/ghi", "hullo")
-    assert @rc.set_namespace("abc/def")
-    assert_equal @rc["ghi"], "hullo"
+    assert @rc.set_path("test/namespace/1", "hullo")
+    assert @rc.set_namespace("test/namespace")
+    assert_equal @rc["1"], "hullo"
 
-    assert @rc.set_path("xxx", "abc")
+    assert @rc.set_path("2", "abc")
     assert @rc.set_namespace("/")
-    assert_equal @rc.get_path("abc/def/xxx"), "abc"
+    assert_equal @rc.get_path("test/namespace/2"), "abc"
 
-    assert @rc.add_namespace("dir_a")
-    assert @rc.add_namespace("dir_b")
-    assert_equal @rc.get_namespace, "/dir_a/dir_b"
+    assert @rc.add_namespace("test")
+    assert @rc.add_namespace("namespace2")
+    assert_equal @rc.get_namespace, "/test/namespace2"
     @rc.set_namespace("/")
   end
 
   run "convinience operator [] and []=" do
-    assert @rc["abc"] = "abc"
-    assert_equal @rc["abc"], "abc"
+    assert @rc["test"] = "abc"
+    assert_equal @rc["test"], "abc"
 
-    @rc["abc"] = nil
-    assert @rc.get_path("/abc").nil?
+    @rc["test"] = nil
+    assert @rc.get_path("/test").nil?
   end
 
   run "path wildcard buliding" do
     assert_equal @rc.build_node_search_list("/"), ["*"]
-    assert_equal @rc.build_node_search_list("/foo/bar"), ["foo","bar","*"]
+    assert_equal @rc.build_node_search_list("/test/wc"), ["test","wc","*"]
   end
 
   run "path unserialisation" do
-    assert @rc.add_namespace("abc")
-    assert_equal "/abc/xyz",
+    assert @rc.add_namespace("test")
+    assert_equal "/test/xyz",
       @rc.unserialize_paths(@rc.cache_path_serialized("xyz"))
   end
 
   run "low level delete function" do
-    @rc.redis.set("delete/me", "1")
-    assert @rc.ll_delete("delete/me")
-    assert_nil @rc.redis.get("delete/me")
-    assert_not @rc.ll_delete("delete/me")
+    @rc.redis.set("test/delete/me", "1")
+    assert @rc.ll_delete("test/delete/me")
+    assert_nil @rc.redis.get("test/delete/me")
+    assert_not @rc.ll_delete("test/delete/me")
   end
 
-  @rc.redis.flushdb
+  purge_test_data(@rc.redis)
 end
