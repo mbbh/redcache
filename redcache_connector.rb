@@ -34,11 +34,17 @@ module RedCache
 
     def set_path(path, file)
       @redis.set cache_path_serialized(path), Marshal.dump([file,Time.now])
+      return file
+    end
+
+    def get_path_and_timestamp(path)
+      data = @redis.get(cache_path_serialized(path))
+      return data ? Marshal.load(data) : [nil, nil]
     end
 
     def get_path(path, default=nil)
-      data = @redis.get(cache_path_serialized(path))
-      return data ? Marshal.load(data).first : default
+      data,_ = get_path_and_timestamp(path)
+      return data
     end
 
     def build_node_search_list(path)
