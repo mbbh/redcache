@@ -29,6 +29,12 @@ begin_test do
     assert @rc["abc"].nil?
   end
 
+  run "node purges on directories" do
+    0.upto(15) {|i| @rc.set_path("test/purge_multi/node{i}", i) }
+    @rc.purge_nodes_at("test/purge_multi/")
+    0.upto(15) {|i| assert_not @rc.redis.exists "test/purge_multi/node#{i}"}
+  end
+
   run "namespace handling" do
     assert (@rc.namespace "LALELU" do
       assert @rc.set_path("foo", "abc")
@@ -68,6 +74,13 @@ begin_test do
     assert @rc.add_namespace("abc")
     assert_equal "/abc/xyz",
       @rc.unserialize_paths(@rc.cache_path_serialized("xyz"))
+  end
+
+  run "low level delete function" do
+    @rc.redis.set("delete/me", "1")
+    assert @rc.ll_delete("delete/me")
+    assert_nil @rc.redis.get("delete/me")
+    assert_not @rc.ll_delete("delete/me")
   end
 
   @rc.redis.flushdb

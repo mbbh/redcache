@@ -53,3 +53,11 @@ end
 def assert_equal_array(a, b)
   assert_equal(a.sort, b.sort)
 end
+
+def assert_nil(a)
+  assert a.nil?
+end
+
+def assert_not(a)
+  assert !a
+end

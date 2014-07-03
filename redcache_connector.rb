@@ -63,9 +63,9 @@ module RedCache
     end
 
     def purge_nodes_at(path)
-      return @redis.del path if @redis.exists path
+      return ll_delete path if @redis.exists path
       nodes = get_nodes_at(path).map {|k| cache_path_serialized(k)}
-      @redis.del nodes unless nodes.empty?
+      return nodes.all? {|n| ll_delete n }
     end
 
     def namespace(name)
@@ -94,8 +94,12 @@ module RedCache
 
     def []=(arg, val)
       return nil if arg.include?(@delim)
-      @redis.del arg if val.nil?
+      ll_delete arg if val.nil?
       set_path(arg, val)
+    end
+
+    def ll_delete(arg)
+      @redis.del(arg) == 1 ? true : false
     end
   end
 end
