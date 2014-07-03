@@ -14,10 +14,17 @@ module RedCache
     def get(path)
       data, ts = @rc.get_path_and_timestamp(path)
       lbda, blk = @callees[path]
-      return data if @callees[path].nil? || (data && lbda.call(ts))
+
+      if @callees[path].nil?
+        return data
+      end
+
+      if data && (lbda == true || (lbda.respond_to?(:call) && lbda.call(ts)))
+        return data
+      end
 
       if timeout = @timeouts[path]
-        @rc.redis.expire(path, timeout)
+        @rc.expire_path(path, timeout)
       end
       return @rc.set_path(path, blk.call)
     end

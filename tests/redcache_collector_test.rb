@@ -32,9 +32,17 @@ begin_test do
     assert @rcl.register("test/cached_entry", ->(ts) { true }, -> { 2 })
     @rcl.temporary("test/cached_entry", 1)
     assert_equal 5, @rcl.get("test/cached_entry")
-    sleep 2
+    sleep 1.1
     assert_equal 2, @rcl.get("test/cached_entry")
-    @rcl.persist("test/cached_entry")
   end
+
+  run "register recalc without an evaluation callback" do
+    @rcl.set("test/cached_without_eval", 9)
+    assert @rcl.register("test/cached_without_eval", true, -> { 5 })
+    @rcl.temporary("test/cached_without_eval", 1)
+    sleep 1.1
+    assert_equal 5, @rcl.get("test/cached_without_eval")
+  end
+
   purge_test_data(@rc.redis)
 end
