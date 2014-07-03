@@ -72,6 +72,10 @@ module RedCache
       @redis.expire(cache_path_serialized(path), time)
     end
 
+    def persist_path(path)
+      @redis.persist(cache_path_serialized(path))
+    end
+
     def namespace(name)
       oldcur = @curpath
       @curpath += (@curpath == @delim ? name : @delim + name)

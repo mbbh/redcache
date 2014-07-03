@@ -34,5 +34,10 @@ module RedCache
       @timeouts[path] = timeout
       @rc.expire_path(path, timeout)
     end
+
+    def persist(path)
+      @timeouts.delete(path)
+      @rc.persist_path(path)
+    end
   end
 end

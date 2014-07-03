@@ -34,6 +34,7 @@ begin_test do
     assert_equal 5, @rcl.get("test/cached_entry")
     sleep 2
     assert_equal 2, @rcl.get("test/cached_entry")
+    @rcl.persist("test/cached_entry")
   end
   purge_test_data(@rc.redis)
 end

@@ -87,9 +87,18 @@ begin_test do
 
   run "expire_path support" do
     assert @rc.set_path("test/expire", "5")
-    assert @rc.expire_path("test/expire",1)
-    sleep 2
+    assert @rc.expire_path("test/expire", 1)
+    sleep 1.1
     assert_nil @rc.get_path("test/expire")
+  end
+
+  run "persist_path support" do
+    assert @rc.set_path("test/persist", "5")
+    assert @rc.expire_path("test/persist", 1)
+    sleep 0.1
+    assert @rc.persist_path("test/persist")
+    sleep 1.1
+    assert_equal "5", @rc.get_path("test/persist")
   end
 
   purge_test_data(@rc.redis)
