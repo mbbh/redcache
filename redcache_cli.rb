@@ -17,20 +17,17 @@ def do_remove(rc, files)
 end
 
 def get_nodes_on_level(rc, match)
-  nodes = []
-  vnodes = []
   match = rc.get_namespace if match.empty? && rc.get_namespace != "/"
   match = "" if match == "/"
 
-  rc.get_nodes_at(match).each do |node|
+  nodes, vnodes = rc.get_nodes_at(match).reduce([[],[]]) do |(n,vn),node|
     case node
     when %r{^/?#{match}/?[^/]+$}
-      node.sub!(%r{/?#{match}/?},'')
-      nodes << node unless nodes.include?(node)
-    when /^\/?#{match}\/[^\/]+\/.*$/
-      node.sub!(%r{/?#{match}/([^/]+)/.*$}, '\1')
-      vnodes << node unless vnodes.include?(node)
+      n << node.sub(%r{/?#{match}/?},'')
+    when %r{^/?#{match}/[^/]+/.*$}
+      vn << node.sub(%r{/?#{match}/([^/]+)/.*$}, '\1')
     end
+    next [n,vn]
   end
   return [vnodes, nodes]
 end
@@ -38,8 +35,7 @@ end
 def do_namespace_change(rc, namespace)
   vnodes, nodes = get_nodes_on_level(rc, rc.get_namespace)
   if namespace == ".." && rc.get_namespace != rc.delim
-    rc.set_namespace(
-      rc.get_namespace.split(rc.delim)[0..-2].join(rc.delim))
+    rc.pop_namespace
   elsif vnodes.include?(namespace) || namespace == "/"
     rc.add_namespace(namespace)
   else

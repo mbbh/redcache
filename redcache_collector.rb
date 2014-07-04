@@ -8,16 +8,17 @@ module RedCache
     end
 
     def register(path, lbda, blk)
-        @callees[path] = [lbda, blk]
+      @callees[path] = [lbda, blk]
     end
 
     def get(path)
       data, ts = @rc.get_path_and_timestamp(path)
-      lbda, blk = @callees[path]
 
       if @callees[path].nil?
         return data
       end
+
+      lbda, blk = @callees[path]
 
       if data && (lbda == true || (lbda.respond_to?(:call) && lbda.call(ts)))
         return data

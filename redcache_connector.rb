@@ -24,7 +24,7 @@ module RedCache
       @delim = delim
     end
 
-    def cache_path_serialized(path)
+    def serialize_paths(path)
       cache_path(path).join(internal_delim)
     end
 
@@ -33,12 +33,12 @@ module RedCache
     end
 
     def set_path(path, file)
-      @redis.set cache_path_serialized(path), Marshal.dump([file,Time.now])
+      @redis.set serialize_paths(path), Marshal.dump([file,Time.now])
       return file
     end
 
     def get_path_and_timestamp(path)
-      data = @redis.get(cache_path_serialized(path))
+      data = @redis.get(serialize_paths(path))
       return data ? Marshal.load(data) : [nil, nil]
     end
 
@@ -64,16 +64,16 @@ module RedCache
 
     def purge_nodes_at(path)
       return ll_delete path if @redis.exists path
-      nodes = get_nodes_at(path).map {|k| cache_path_serialized(k)}
+      nodes = get_nodes_at(path).map {|k| serialize_paths(k)}
       return nodes.all? {|n| ll_delete n }
     end
 
     def expire_path(path, time)
-      @redis.expire(cache_path_serialized(path), time)
+      @redis.expire(serialize_paths(path), time)
     end
 
     def persist_path(path)
-      @redis.persist(cache_path_serialized(path))
+      @redis.persist(serialize_paths(path))
     end
 
     def namespace(name)
@@ -93,6 +93,10 @@ module RedCache
 
     def add_namespace(name)
       @curpath += @curpath[-1] == @delim ? name : @delim + name
+    end
+
+    def pop_namespace
+      set_namespace(get_namespace.split(@delim)[0..-2].join(@delim))
     end
 
     def [](arg)

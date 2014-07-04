@@ -75,7 +75,7 @@ begin_test do
   run "path unserialisation" do
     assert @rc.add_namespace("test")
     assert_equal "/test/xyz",
-      @rc.unserialize_paths(@rc.cache_path_serialized("xyz"))
+      @rc.unserialize_paths(@rc.serialize_paths("xyz"))
   end
 
   run "low level delete function" do
