@@ -11,10 +11,25 @@ Redcache is a very early stage caching library depending on redis and redis-rb. 
 Currently RedCache consists of two main components: RedCache::Connector and
 RedCache::Collector.
 
-####### RedCache::Connector
+###### RedCache::Connector
 
-- Contains lowlevel abstractions and the implementation of the namespace / hierachical mapping.
+- Contains lowlevel abstractions and the implementation of the namespace / hierachical mapping. Also contains lowlevel abstraction for timeout/persistance handling for keys stored in redis.
 
-####### RedCache::Collector
+###### RedCache::Collector
 
-- Contains highlevel caching functionality.
+- Contains highlevel caching functionality and ways to support automatic timeout
+  on the application.
+
+#### Examples
+
+  examples/ssh_listing.rb : An example which demonstrates the use of the RedCache::Collector to actively query data from an ssh server (in this case
+  executing a ls -l on a user specified directory) and storing this 'expensive'
+  operation into the caching layer, only reexecuting it after a minute has passed.
+
+#### Reequirements
+
+  The caching layer was written to depend on very few gems. It requires
+   - redis-rb
+   - readline (part of stdlib, not a gem)
+   - net-ssh (only for examples)
+   - a working redis server listening on localhost
