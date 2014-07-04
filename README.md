@@ -3,8 +3,18 @@ RedCache
 
 #### What is RedCache?
 
-Redcache is a very early stage caching library depending on redis and redis-rb. The idea is to allow for easy, hierachical data storage within redis, while providing utility functions to allow easy caching and retrieval of stored data adhering to the namespace paradigma.
+RedCache is a very early stage caching library depending on redis and redis-rb. The idea is to allow for easy, hierachical data storage within redis, while providing utility functions to allow easy caching and retrieval of stored data adhering to the namespace paradigma.
 
+#### Features
+
+- High level caching and timeout APi to allow easy auto invalidation and
+  recalculation on demand as well as verification based on timestamp of
+  last recalculation.
+- lowlevel API implementing Namespaces to redis with arbitary delimiters,
+  defaulting to /. Internal delimiters written to redis are as unique as
+  possible to prevent clashes with other implementations.
+- support for lowlevel timeout/persistence API on the redis db.
+- multi-instance support on the low level.
 
 #### Components
 
@@ -50,8 +60,45 @@ RedCache::Collector.
   rcl = RedCache::Collector.new
   rcl.register("/test/entry/5", true, -> {recalculate_data})
   rcl.temporary("/test/entry/5", 60)
-  rcl.get("/test/entry/5") # => calls recalculate_data and returns the result
+  rcl.get("/test/entry/5") # calls recalculate_data and returns the result
   rcl.get("/test/entry/5") # fetches the stored result of reculate_data
   sleep 60.5
-  rcl.get("/test/entry/5") # => result expired, calling recalculate_data again
+  rcl.get("/test/entry/5") # result expired, calling recalculate_data again
+```
+
+- using the verification function to determine whether a path needs recalculation
+```ruby
+  require 'redcache'
+  rcl = RedCache::Collector.new
+  rcl.register("/test/entry/42", ->(timestamp) {do_recalc?(timestamp)},
+    -> {recalculate_data})
+  rcl.get("/test/entry/42") # will call recalculate_data, nothing stored
+  rcl.get("/test/entry/42") # will call do_recalc? with timestamp of last run.
+```
+
+##### RedCache::Connector
+
+- basic get/set operations
+```ruby
+  require 'redcache'
+  rc = RedCache::Connector.new("/") # param optionally is namespace delimiter
+  rc.get_path("/test/entry/5/abc")  # get data from path
+  rc.set_path("/test/entry/42", [1234,"abc"]) # store value at given path
+```
+
+- basic namespace operations
+```ruby
+  require 'redcache'
+  rc = RedCache::Connector.new
+  rc.set_namespace("/test/1")
+  rc.get_path("tmp/5") # will access /test/1/tmp/5
+  rc.add_namespace("tmp") # enter /test/1/tmp namespace
+```
+
+- persistance handling
+```ruby
+  require 'redcache'
+  rc = RedCache::Connector.new
+  rc.expire_path("/test/5", 60) # forces redis to delete /test/5 after 1 min
+  rc.persist_path("/test/5") # undos the expire poperation
 ```
