@@ -23,10 +23,7 @@ module RedCache
         return data
       end
 
-      if timeout = @timeouts[path]
-        @rc.expire_path(path, timeout)
-      end
-      return @rc.set_path(path, blk.call)
+      return set(path, blk.call)
     end
 
     def set(path, value)
