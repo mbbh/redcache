@@ -1,5 +1,4 @@
-load 'redcache.rb'
-load 'redcache_color.rb'
+require 'redcache'
 require 'readline'
 
 def do_write(rc, val, key)

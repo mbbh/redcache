@@ -1,5 +1,4 @@
-load 'redcache.rb'
-load 'redcache_color.rb'
+require 'redcache'
 load 'redcache_test_helper.rb'
 
 begin_test do

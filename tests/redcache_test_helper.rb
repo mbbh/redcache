@@ -1,4 +1,4 @@
-load 'redcache_color.rb'
+require 'redcache/redcache_color'
 
 def test_ok
   print "\b\b\b\b\b\b\b\b\b\b[   "+ green("OK") + "   ]\n"
