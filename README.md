@@ -26,7 +26,7 @@ RedCache::Collector.
   executing a ls -l on a user specified directory) and storing this 'expensive'
   operation into the caching layer, only reexecuting it after a minute has passed.
 
-#### Reequirements
+#### Requirements
 
   The caching layer was written to depend on very few gems. It requires
    - redis-rb
