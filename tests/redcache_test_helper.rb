@@ -1,4 +1,4 @@
-require 'redcache/redcache_color'
+require 'redcache/color'
 include RedCache::Color
 
 def test_ok
