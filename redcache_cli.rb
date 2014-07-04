@@ -1,6 +1,8 @@
 require 'redcache'
 require 'readline'
 
+include RedCache::Color
+
 def do_write(rc, val, key)
   rc.set_path(key, val)
 end

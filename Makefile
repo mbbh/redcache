@@ -3,4 +3,4 @@ test:
 	@for i in $$(ls -1 tests/*_test.rb); do echo "==== " $$i " ===="; ruby -Ilib:tests $$i;done
 
 cli:
-	@ruby redcache_cli.rb
+	@ruby -Ilib redcache_cli.rb

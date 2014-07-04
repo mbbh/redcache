@@ -1,4 +1,5 @@
 require 'redcache/redcache_color'
+include RedCache::Color
 
 def test_ok
   print "\b\b\b\b\b\b\b\b\b\b[   "+ green("OK") + "   ]\n"
