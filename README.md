@@ -50,4 +50,8 @@ RedCache::Collector.
   rcl = RedCache::Collector.new
   rcl.register("/test/entry/5", true, -> {recalculate_data})
   rcl.temporary("/test/entry/5", 60)
+  rcl.get("/test/entry/5") # => calls recalculate_data and returns the result
+  rcl.get("/test/entry/5") # fetches the stored result of reculate_data
+  sleep 60.5
+  rcl.get("/test/entry/5") # => result expired, calling recalculate_data again
 ```
